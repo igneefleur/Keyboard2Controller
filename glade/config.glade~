@@ -33,12 +33,11 @@
                     <property name="orientation">vertical</property>
                     <property name="homogeneous">True</property>
                     <child>
-                      <object class="GtkAppChooserButton" id="seletor_control">
+                      <object class="GtkAppChooserButton" id="selector_control">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
                         <property name="hexpand">True</property>
                         <property name="show-default-item">True</property>
-                        <signal name="custom-item-activated" handler="item_activated" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -117,20 +116,38 @@
                 <property name="orientation">vertical</property>
                 <property name="homogeneous">True</property>
                 <child>
-                  <object class="GtkFrame" id="Left Stick">
+                  <object class="GtkBox">
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
-                    <property name="label-xalign">0</property>
-                    <property name="shadow-type">in</property>
+                    <property name="orientation">vertical</property>
                     <child>
-                      <object class="GtkAlignment">
+                      <object class="GtkLabel">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="left-padding">12</property>
+                        <property name="label" translatable="yes">Left Stick</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkAspectFrame">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="valign">start</property>
+                        <property name="vexpand">True</property>
+                        <property name="label-xalign">0</property>
+                        <property name="shadow-type">in</property>
                         <child>
                           <object class="GtkBox">
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
+                            <property name="margin-start">10</property>
+                            <property name="margin-end">10</property>
+                            <property name="margin-top">10</property>
+                            <property name="margin-bottom">10</property>
                             <property name="vexpand">True</property>
                             <property name="orientation">vertical</property>
                             <property name="homogeneous">True</property>
@@ -185,6 +202,7 @@
                                     <property name="can-focus">False</property>
                                     <property name="halign">center</property>
                                     <property name="valign">center</property>
+                                    <property name="margin-end">5</property>
                                     <property name="orientation">vertical</property>
                                     <child>
                                       <object class="GtkLabel">
@@ -225,6 +243,7 @@
                                     <property name="can-focus">False</property>
                                     <property name="halign">center</property>
                                     <property name="valign">center</property>
+                                    <property name="margin-start">5</property>
                                     <property name="orientation">vertical</property>
                                     <child>
                                       <object class="GtkLabel">
@@ -272,7 +291,6 @@
                                 <property name="can-focus">False</property>
                                 <property name="halign">center</property>
                                 <property name="valign">center</property>
-                                <property name="margin-bottom">15</property>
                                 <property name="orientation">vertical</property>
                                 <child>
                                   <object class="GtkLabel">
@@ -310,13 +328,11 @@
                           </object>
                         </child>
                       </object>
-                    </child>
-                    <child type="label">
-                      <object class="GtkLabel">
-                        <property name="visible">True</property>
-                        <property name="can-focus">False</property>
-                        <property name="label" translatable="yes">Left Stick</property>
-                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">1</property>
+                      </packing>
                     </child>
                   </object>
                   <packing>
@@ -326,20 +342,38 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkFrame" id="D-Pad">
+                  <object class="GtkBox">
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
-                    <property name="label-xalign">0</property>
-                    <property name="shadow-type">in</property>
+                    <property name="orientation">vertical</property>
                     <child>
-                      <object class="GtkAlignment">
+                      <object class="GtkLabel">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="left-padding">12</property>
+                        <property name="label" translatable="yes">D-Pad</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkAspectFrame">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="valign">start</property>
+                        <property name="vexpand">True</property>
+                        <property name="label-xalign">0</property>
+                        <property name="shadow-type">in</property>
                         <child>
                           <object class="GtkBox">
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
+                            <property name="margin-start">10</property>
+                            <property name="margin-end">10</property>
+                            <property name="margin-top">10</property>
+                            <property name="margin-bottom">10</property>
                             <property name="vexpand">True</property>
                             <property name="orientation">vertical</property>
                             <property name="homogeneous">True</property>
@@ -394,6 +428,7 @@
                                     <property name="can-focus">False</property>
                                     <property name="halign">center</property>
                                     <property name="valign">center</property>
+                                    <property name="margin-end">5</property>
                                     <property name="orientation">vertical</property>
                                     <child>
                                       <object class="GtkLabel">
@@ -434,6 +469,7 @@
                                     <property name="can-focus">False</property>
                                     <property name="halign">center</property>
                                     <property name="valign">center</property>
+                                    <property name="margin-start">5</property>
                                     <property name="orientation">vertical</property>
                                     <child>
                                       <object class="GtkLabel">
@@ -481,7 +517,6 @@
                                 <property name="can-focus">False</property>
                                 <property name="halign">center</property>
                                 <property name="valign">center</property>
-                                <property name="margin-bottom">15</property>
                                 <property name="orientation">vertical</property>
                                 <child>
                                   <object class="GtkLabel">
@@ -519,13 +554,11 @@
                           </object>
                         </child>
                       </object>
-                    </child>
-                    <child type="label">
-                      <object class="GtkLabel">
-                        <property name="visible">True</property>
-                        <property name="can-focus">False</property>
-                        <property name="label" translatable="yes">D-Pad</property>
-                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">1</property>
+                      </packing>
                     </child>
                   </object>
                   <packing>
@@ -856,20 +889,38 @@
                 <property name="orientation">vertical</property>
                 <property name="homogeneous">True</property>
                 <child>
-                  <object class="GtkFrame" id="Face Buttons">
+                  <object class="GtkBox">
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
-                    <property name="label-xalign">0</property>
-                    <property name="shadow-type">in</property>
+                    <property name="orientation">vertical</property>
                     <child>
-                      <object class="GtkAlignment">
+                      <object class="GtkLabel">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="left-padding">12</property>
+                        <property name="label" translatable="yes">Face Buttons</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkAspectFrame">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="valign">start</property>
+                        <property name="vexpand">True</property>
+                        <property name="label-xalign">0</property>
+                        <property name="shadow-type">in</property>
                         <child>
                           <object class="GtkBox">
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
+                            <property name="margin-start">10</property>
+                            <property name="margin-end">10</property>
+                            <property name="margin-top">10</property>
+                            <property name="margin-bottom">10</property>
                             <property name="vexpand">True</property>
                             <property name="orientation">vertical</property>
                             <property name="homogeneous">True</property>
@@ -924,6 +975,7 @@
                                     <property name="can-focus">False</property>
                                     <property name="halign">center</property>
                                     <property name="valign">center</property>
+                                    <property name="margin-end">5</property>
                                     <property name="orientation">vertical</property>
                                     <child>
                                       <object class="GtkLabel">
@@ -964,6 +1016,7 @@
                                     <property name="can-focus">False</property>
                                     <property name="halign">center</property>
                                     <property name="valign">center</property>
+                                    <property name="margin-start">5</property>
                                     <property name="orientation">vertical</property>
                                     <child>
                                       <object class="GtkLabel">
@@ -1011,7 +1064,6 @@
                                 <property name="can-focus">False</property>
                                 <property name="halign">center</property>
                                 <property name="valign">center</property>
-                                <property name="margin-bottom">15</property>
                                 <property name="orientation">vertical</property>
                                 <child>
                                   <object class="GtkLabel">
@@ -1049,13 +1101,11 @@
                           </object>
                         </child>
                       </object>
-                    </child>
-                    <child type="label">
-                      <object class="GtkLabel">
-                        <property name="visible">True</property>
-                        <property name="can-focus">False</property>
-                        <property name="label" translatable="yes">Face Buttons</property>
-                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">1</property>
+                      </packing>
                     </child>
                   </object>
                   <packing>
@@ -1065,20 +1115,38 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkFrame" id="Right Stick">
+                  <object class="GtkBox">
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
-                    <property name="label-xalign">0</property>
-                    <property name="shadow-type">in</property>
+                    <property name="orientation">vertical</property>
                     <child>
-                      <object class="GtkAlignment">
+                      <object class="GtkLabel">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="left-padding">12</property>
+                        <property name="label" translatable="yes">Right Stick					</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkAspectFrame">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="valign">start</property>
+                        <property name="vexpand">True</property>
+                        <property name="label-xalign">0</property>
+                        <property name="shadow-type">in</property>
                         <child>
                           <object class="GtkBox">
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
+                            <property name="margin-start">10</property>
+                            <property name="margin-end">10</property>
+                            <property name="margin-top">10</property>
+                            <property name="margin-bottom">10</property>
                             <property name="vexpand">True</property>
                             <property name="orientation">vertical</property>
                             <property name="homogeneous">True</property>
@@ -1133,6 +1201,7 @@
                                     <property name="can-focus">False</property>
                                     <property name="halign">center</property>
                                     <property name="valign">center</property>
+                                    <property name="margin-end">5</property>
                                     <property name="orientation">vertical</property>
                                     <child>
                                       <object class="GtkLabel">
@@ -1173,6 +1242,7 @@
                                     <property name="can-focus">False</property>
                                     <property name="halign">center</property>
                                     <property name="valign">center</property>
+                                    <property name="margin-start">5</property>
                                     <property name="orientation">vertical</property>
                                     <child>
                                       <object class="GtkLabel">
@@ -1220,7 +1290,6 @@
                                 <property name="can-focus">False</property>
                                 <property name="halign">center</property>
                                 <property name="valign">center</property>
-                                <property name="margin-bottom">15</property>
                                 <property name="orientation">vertical</property>
                                 <child>
                                   <object class="GtkLabel">
@@ -1258,19 +1327,17 @@
                           </object>
                         </child>
                       </object>
-                    </child>
-                    <child type="label">
-                      <object class="GtkLabel">
-                        <property name="visible">True</property>
-                        <property name="can-focus">False</property>
-                        <property name="label" translatable="yes">Right Stick</property>
-                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">1</property>
+                      </packing>
                     </child>
                   </object>
                   <packing>
                     <property name="expand">False</property>
                     <property name="fill">True</property>
-                    <property name="position">2</property>
+                    <property name="position">1</property>
                   </packing>
                 </child>
               </object>

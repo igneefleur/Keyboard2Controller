@@ -323,6 +323,7 @@ void refresh_button_clicked(GtkButton * _button, gpointer data){
   g_mutex_unlock(&mutex);
 
   clear_button_clicked(NULL, NULL);
+  printf("%s\n", "REFRESH DONE");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
