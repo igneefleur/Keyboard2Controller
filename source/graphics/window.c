@@ -2,7 +2,7 @@
 #include <stdio.h> // print
 #include <time.h> // for calculate ti-/...
 
-#include "window_button.c"
+#include "./window_button.c"
 
 #include "./../dictionaries/button_to_key.c"
 #include "./../dictionaries/key_to_button.c"
@@ -25,12 +25,12 @@ const char default_device[STRING_SIZE] = "No Device";
 ////////////////////////////////////////////////////////////////////////////////
 //// VARIABLES
 
-GMainContext * context; // test
+GMainContext * context;
 
-GMutex mutex; // remplace this with GTK mutex
+GMutex mutex;
 
 int controller;
-GThread * controller_thread;  // remplace this with GTK thread
+GThread * controller_thread;
 int controller_thread_flag = 0;
 
 char actual_device[STRING_SIZE] = "No Device";
@@ -47,9 +47,14 @@ void on_window_destroy(GtkWidget * _widget, gpointer user_data){
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-//// INPUT SELECTOR
+//// DEVICE SELECTOR
 
-void set_input_selector(GtkAppChooserButton * _input_selector){
+struct device_selector {
+  GtkBox * gtk_box;
+  GtkAppChooserButton * gtk_app_chooser_button;
+};
+
+void setup_device_selector(GtkAppChooserButton * _device_selector){
   DIR * d;
   struct dirent * dir;
   d = opendir("/dev/input/by-path");
@@ -57,17 +62,17 @@ void set_input_selector(GtkAppChooserButton * _input_selector){
   dir = readdir(d); // skip "."
   dir = readdir(d); // skip ".."
 
-  gtk_app_chooser_button_append_custom_item(_input_selector, default_device, default_device, NULL);
-  gtk_app_chooser_button_set_active_custom_item(_input_selector, default_device);
+  gtk_app_chooser_button_append_custom_item(_device_selector, default_device, default_device, NULL);
+  gtk_app_chooser_button_set_active_custom_item(_device_selector, default_device);
   if(d){
     while ((dir = readdir(d)) != NULL) {
-      gtk_app_chooser_button_append_custom_item(_input_selector, dir->d_name, dir->d_name, NULL);
+      gtk_app_chooser_button_append_custom_item(_device_selector, dir->d_name, dir->d_name, NULL);
     }
     closedir(d);
   }
 }
 
-void item_activated(GtkAppChooserButton * _input_selector, gchar* _device, gpointer _user_data){
+void item_activated(GtkAppChooserButton * _device_selector, gchar* _device, gpointer _user_data){
 
   //stop_keyboard(keyboard);
   if(!strcmp(_device, default_device)){ // if default_device is selected
@@ -176,11 +181,12 @@ void * thread_button_wait_time(void * data){
     return NULL;
   }
 
+  if(button_to_key_exist(_window_button->name)) remove_button_to_key(find_button_to_key(_window_button->name)); // sensitive (_window_button)
+
   GSource * source = g_idle_source_new();
   g_source_set_callback(source, button_wait_time, _window_button, NULL);
   g_source_attach(source, context);
   g_source_unref(source);
-
 
   _window_button->thread_flag = 0; // sensitive (_window_button) // set flag to FALSE
   g_mutex_unlock(&mutex);
@@ -272,17 +278,101 @@ void apply_button_clicked(GtkButton * _button, gpointer null){
   printf("%s\n", "APPLY DONE");
 }
 
+////////////////////////////////////////////////////////////////////////////////
+//// CLEAR BUTTON
+
+void clear_button_clicked(GtkButton * _button, gpointer null){
+  printf("%s\n", "CLEAR START");
+  struct button_to_key * _button_to_key;
+  struct window_button * _window_button;
+
+  g_mutex_lock(&mutex);
+  for(_button_to_key = buttons_to_keys; _button_to_key != NULL; _button_to_key = _button_to_key->hh.next) {
+
+    char _code[INT_SIZE]; sprintf(_code, "%d", _button_to_key->code); // transform int in string
+
+    printf("  CLEAR %s\n", _button_to_key->key);
+    remove_button_to_key(_button_to_key);
+  }
+
+  for (_window_button = window_buttons; _window_button != NULL; _window_button = _window_button->hh.next) {
+    _window_button->thread_flag = 0;
+    gtk_button_set_label(_window_button->gtk_button, "");
+  }
+  g_mutex_unlock(&mutex);
+
+  printf("%s\n", "CLEAR DONE");
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//// REFRESH BUTTON
+
+void refresh_button_clicked(GtkButton * _button, gpointer data){
+  printf("%s\n", "REFRESH START");
+
+  g_mutex_lock(&mutex);
+  struct device_selector * _selector = (struct device_selector *) data;
+
+  gtk_widget_destroy(GTK_WIDGET(_selector->gtk_app_chooser_button));
+  _selector->gtk_app_chooser_button = GTK_APP_CHOOSER_BUTTON(gtk_app_chooser_button_new(""));
+  gtk_container_add(GTK_CONTAINER(_selector->gtk_box), GTK_WIDGET(_selector->gtk_app_chooser_button));
+  gtk_widget_show(GTK_WIDGET(_selector->gtk_app_chooser_button));
+  setup_device_selector(_selector->gtk_app_chooser_button);
+  g_signal_connect(G_OBJECT(_selector->gtk_app_chooser_button), "custom-item-activated", G_CALLBACK(item_activated), NULL);
+
+  g_mutex_unlock(&mutex);
+
+  clear_button_clicked(NULL, NULL);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+void gtk_init(int * argc, char *** argv);
+
+int window(int argc, char ** argv){
+
+  GtkBuilder * builder;
+  GtkWidget * window;
+
+  struct device_selector * selector = (struct device_selector *)malloc(sizeof(struct device_selector));
+
+  GtkButton * apply_button;
+  GtkButton * clear_button;
+  GtkButton * refresh_button;
+
+  GtkButton * left_stick_up;
+  GtkButton * left_stick_left;
+  GtkButton * left_stick_right;
+  GtkButton * left_stick_down;
+
+  GtkButton * d_pad_up;
+  GtkButton * d_pad_left;
+  GtkButton * d_pad_right;
+  GtkButton * d_pad_down;
+
+  GtkButton * other_button_l;
+  GtkButton * other_button_zl;
+  GtkButton * other_button_minus;
+  GtkButton * other_button_plus;
+  GtkButton * other_button_r;
+  GtkButton * other_button_zr;
+
+  GtkButton * face_button_x;
+  GtkButton * face_button_y;
+  GtkButton * face_button_a;
+  GtkButton * face_button_b;
+
+  GtkButton * right_stick_up;
+  GtkButton * right_stick_left;
+  GtkButton * right_stick_right;
+  GtkButton * right_stick_down;
 
 ////////////////////////////////////////////////////////////////////////////////
 //// SETUP GTK + GLADE
 
-int window(int argc, char ** argv){
-  GtkBuilder * builder;
-  GtkWidget * window;
-  GtkAppChooserButton * input_selector;
-
   gtk_init(&argc, &argv); // initialize GTK
-  g_object_set(gtk_settings_get_default(), "gtk-application-prefer-dark-theme", TRUE, NULL); // because png controller is white (and i'm lazy to change according to the theme)
+  g_object_set(gtk_settings_get_default(), "gtk-application-prefer-dark-theme", TRUE, NULL); // because png controller istk_widget_destroy(GTK white (and i'm lazy to change according to the theme)
 
   builder = gtk_builder_new();
   gtk_builder_add_from_file(builder, "./glade/config.glade", NULL);
@@ -290,16 +380,25 @@ int window(int argc, char ** argv){
 
   window = GTK_WIDGET(gtk_builder_get_object(builder, "window"));
 
-  input_selector = GTK_APP_CHOOSER_BUTTON(gtk_builder_get_object(builder, "input_selector"));
-  set_input_selector(input_selector);
+  selector->gtk_box = GTK_BOX(gtk_builder_get_object(builder, "selector_container"));
+  selector->gtk_app_chooser_button = GTK_APP_CHOOSER_BUTTON(gtk_builder_get_object(builder, "selector_control"));
+  setup_device_selector(selector->gtk_app_chooser_button);
+  g_signal_connect(G_OBJECT(selector->gtk_app_chooser_button), "custom-item-activated", G_CALLBACK(item_activated), NULL);
 
-  GtkButton * apply_button = GTK_BUTTON(gtk_builder_get_object(builder, "apply"));
+  apply_button = GTK_BUTTON(gtk_builder_get_object(builder, "apply"));
   g_signal_connect(G_OBJECT(apply_button), "clicked", G_CALLBACK(apply_button_clicked), NULL);
 
-  context = g_main_context_default(); // test
+  clear_button = GTK_BUTTON(gtk_builder_get_object(builder, "clear"));
+  g_signal_connect(G_OBJECT(clear_button), "clicked", G_CALLBACK(clear_button_clicked), NULL);
+
+  refresh_button = GTK_BUTTON(gtk_builder_get_object(builder, "refresh"));
+  g_signal_connect(G_OBJECT(refresh_button), "clicked", G_CALLBACK(refresh_button_clicked), selector);
+
+  context = g_main_context_default();
 
 ////////////////////////////////////////////////////////////////////////////////
 //// SETUP CONTROLLER
+
   controller = new_controller();
   controller_thread = g_thread_new(NULL, start_controller, NULL);
 
@@ -308,96 +407,92 @@ int window(int argc, char ** argv){
 
 //// LEFT STICK
 
-  GtkButton * left_stick_up = GTK_BUTTON(gtk_builder_get_object(builder, "left_stick_up"));
+  left_stick_up = GTK_BUTTON(gtk_builder_get_object(builder, "left_stick_up"));
   struct window_button * abs_y_positive = create_window_button("ABS_Y_POSITIVE", left_stick_up, ABS_Y, EV_ABS, 512);
   g_signal_connect(G_OBJECT(left_stick_up), "pressed", G_CALLBACK(button_clicked), abs_y_positive);
 
-  GtkButton * left_stick_left = GTK_BUTTON(gtk_builder_get_object(builder, "left_stick_left"));
+  left_stick_left = GTK_BUTTON(gtk_builder_get_object(builder, "left_stick_left"));
   struct window_button * abs_x_negative = create_window_button("ABS_X_NEGATIVE", left_stick_left, ABS_X, EV_ABS, -512);
   g_signal_connect(G_OBJECT(left_stick_left), "pressed", G_CALLBACK(button_clicked), abs_x_negative);
 
-  GtkButton * left_stick_right = GTK_BUTTON(gtk_builder_get_object(builder, "left_stick_right"));
+  left_stick_right = GTK_BUTTON(gtk_builder_get_object(builder, "left_stick_right"));
   struct window_button * abs_x_positive = create_window_button("ABS_X_POSITIVE", left_stick_right, ABS_X, EV_ABS, 512);
   g_signal_connect(G_OBJECT(left_stick_right), "pressed", G_CALLBACK(button_clicked), abs_x_positive);
 
-  GtkButton * left_stick_down = GTK_BUTTON(gtk_builder_get_object(builder, "left_stick_down"));
+  left_stick_down = GTK_BUTTON(gtk_builder_get_object(builder, "left_stick_down"));
   struct window_button * abs_y_negative = create_window_button("ABS_Y_NEGATIVE", left_stick_down, ABS_Y, EV_ABS, -512);
   g_signal_connect(G_OBJECT(left_stick_down), "pressed", G_CALLBACK(button_clicked), abs_y_negative);
 
 //// D-PAD
 
-  GtkButton * d_pad_up = GTK_BUTTON(gtk_builder_get_object(builder, "d_pad_up"));
+  d_pad_up = GTK_BUTTON(gtk_builder_get_object(builder, "d_pad_up"));
   struct window_button * btn_dpad_up = create_window_button("BTN_DPAD_UP", d_pad_up, BTN_DPAD_UP, EV_KEY, 1);
   g_signal_connect(G_OBJECT(d_pad_up), "pressed", G_CALLBACK(button_clicked), btn_dpad_up);
 
-  GtkButton * d_pad_left = GTK_BUTTON(gtk_builder_get_object(builder, "d_pad_left"));
+  d_pad_left = GTK_BUTTON(gtk_builder_get_object(builder, "d_pad_left"));
   struct window_button * btn_dpad_left = create_window_button("BTN_DPAD_LEFT", d_pad_left, BTN_DPAD_LEFT, EV_KEY, 1);
   g_signal_connect(G_OBJECT(d_pad_left), "pressed", G_CALLBACK(button_clicked), btn_dpad_left);
 
-  GtkButton * d_pad_right = GTK_BUTTON(gtk_builder_get_object(builder, "d_pad_right"));
+  d_pad_right = GTK_BUTTON(gtk_builder_get_object(builder, "d_pad_right"));
   struct window_button * btn_dpad_right = create_window_button("BTN_DPAD_RIGHT", d_pad_right, BTN_DPAD_RIGHT, EV_KEY, 1);
   g_signal_connect(G_OBJECT(d_pad_right), "pressed", G_CALLBACK(button_clicked), btn_dpad_right);
 
-  GtkButton * d_pad_down = GTK_BUTTON(gtk_builder_get_object(builder, "d_pad_down"));
+  d_pad_down = GTK_BUTTON(gtk_builder_get_object(builder, "d_pad_down"));
   struct window_button * btn_dpad_down = create_window_button("BTN_DPAD_DOWN", d_pad_down, BTN_DPAD_DOWN, EV_KEY, 1);
   g_signal_connect(G_OBJECT(d_pad_down), "pressed", G_CALLBACK(button_clicked), btn_dpad_down);
 
 //// OTHER BUTTONS
 
-  GtkButton * other_button_l = GTK_BUTTON(gtk_builder_get_object(builder, "other_button_l"));
+   other_button_l = GTK_BUTTON(gtk_builder_get_object(builder, "other_button_l"));
   struct window_button * btn_tl = create_window_button("BTN_TL", other_button_l, BTN_TL, EV_KEY, 1);
   g_signal_connect(G_OBJECT(other_button_l), "pressed", G_CALLBACK(button_clicked), btn_tl);
 
-  GtkButton * other_button_zl = GTK_BUTTON(gtk_builder_get_object(builder, "other_button_zl"));
+  other_button_zl = GTK_BUTTON(gtk_builder_get_object(builder, "other_button_zl"));
   struct window_button * btn_tl2 = create_window_button("BTN_TL2", other_button_zl, BTN_TL2, EV_KEY, 1);
   g_signal_connect(G_OBJECT(other_button_zl), "pressed", G_CALLBACK(button_clicked), btn_tl2);
 
 
-  GtkButton * other_button_minus = GTK_BUTTON(gtk_builder_get_object(builder, "other_button_minus"));
+  other_button_minus = GTK_BUTTON(gtk_builder_get_object(builder, "other_button_minus"));
   struct window_button * btn_start = create_window_button("BTN_START", other_button_minus, BTN_START, EV_KEY, 1);
   g_signal_connect(G_OBJECT(other_button_minus), "pressed", G_CALLBACK(button_clicked), btn_start);
 
-  GtkButton * other_button_plus = GTK_BUTTON(gtk_builder_get_object(builder, "other_button_plus"));
+  other_button_plus = GTK_BUTTON(gtk_builder_get_object(builder, "other_button_plus"));
   struct window_button * btn_select = create_window_button("BTN_SELECT", other_button_plus, BTN_SELECT, EV_KEY, 1);
   g_signal_connect(G_OBJECT(other_button_plus), "pressed", G_CALLBACK(button_clicked), btn_select);
 
 
-  GtkButton * other_button_r = GTK_BUTTON(gtk_builder_get_object(builder, "other_button_r"));
+  other_button_r = GTK_BUTTON(gtk_builder_get_object(builder, "other_button_r"));
   struct window_button * btn_tr = create_window_button("BTN_TR", other_button_r, BTN_TR, EV_KEY, 1);
   g_signal_connect(G_OBJECT(other_button_r), "pressed", G_CALLBACK(button_clicked), btn_tr);
 
-  GtkButton * other_button_zr = GTK_BUTTON(gtk_builder_get_object(builder, "other_button_zr"));
+  other_button_zr = GTK_BUTTON(gtk_builder_get_object(builder, "other_button_zr"));
   struct window_button * btn_tr2 = create_window_button("BTN_TR2", other_button_zr, BTN_TR2, EV_KEY, 1);
   g_signal_connect(G_OBJECT(other_button_zr), "pressed", G_CALLBACK(button_clicked), btn_tr2);
 
 //// FACES BUTTONS
 
-  GtkButton * face_button_x = GTK_BUTTON(gtk_builder_get_object(builder, "face_button_x"));
+  face_button_x = GTK_BUTTON(gtk_builder_get_object(builder, "face_button_x"));
   struct window_button * btn_x = create_window_button("BTN_X",face_button_x,  BTN_X, EV_KEY, 1);
   g_signal_connect(G_OBJECT(face_button_x), "pressed", G_CALLBACK(button_clicked), btn_x);
 
-  GtkButton * face_button_y = GTK_BUTTON(gtk_builder_get_object(builder, "face_button_y"));
+  face_button_y = GTK_BUTTON(gtk_builder_get_object(builder, "face_button_y"));
   struct window_button * btn_y = create_window_button("BTN_Y", face_button_y, BTN_Y, EV_KEY, 1);
   g_signal_connect(G_OBJECT(face_button_y), "pressed", G_CALLBACK(button_clicked), btn_y);
 
-  GtkButton * face_button_a = GTK_BUTTON(gtk_builder_get_object(builder, "face_button_a"));
+  face_button_a = GTK_BUTTON(gtk_builder_get_object(builder, "face_button_a"));
   struct window_button * btn_a = create_window_button("BTN_A", face_button_a, BTN_A, EV_KEY, 1);
   g_signal_connect(G_OBJECT(face_button_a), "pressed", G_CALLBACK(button_clicked), btn_a);
 
-  GtkButton * face_button_b = GTK_BUTTON(gtk_builder_get_object(builder, "face_button_b"));
+  face_button_b = GTK_BUTTON(gtk_builder_get_object(builder, "face_button_b"));
   struct window_button * btn_b = create_window_button("BTN_B", face_button_b, BTN_B, EV_KEY, 1);
   g_signal_connect(G_OBJECT(face_button_b), "pressed", G_CALLBACK(button_clicked), btn_b);
 
 //// RIGHT STICK
 
-  GtkButton * right_stick_up = GTK_BUTTON(gtk_builder_get_object(builder, "right_stick_up"));
-  GtkButton * right_stick_left = GTK_BUTTON(gtk_builder_get_object(builder, "right_stick_left"));
-  GtkButton * right_stick_right = GTK_BUTTON(gtk_builder_get_object(builder, "right_stick_right"));
-  GtkButton * right_stick_down = GTK_BUTTON(gtk_builder_get_object(builder, "right_stick_down"));
-
-
-
-
+  right_stick_up = GTK_BUTTON(gtk_builder_get_object(builder, "right_stick_up"));
+  right_stick_left = GTK_BUTTON(gtk_builder_get_object(builder, "right_stick_left"));
+  right_stick_right = GTK_BUTTON(gtk_builder_get_object(builder, "right_stick_right"));
+  right_stick_down = GTK_BUTTON(gtk_builder_get_object(builder, "right_stick_down"));
 
 
 ////////////////////////////////////////////////////////////////////////////////
