@@ -1,0 +1,5 @@
+#!/bin/sh
+
+if ./compile; then
+  sudo ./execute
+fi
