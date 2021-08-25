@@ -1,10 +1,8 @@
 #include <stdio.h> // command malloc
 #include <stdlib.h> // command free
 #include <gtk/gtk.h> // gtkbutton
-//#include <pthread.h> // pthread.. really.
-#include <gtk/gtk.h>
 
-#include "./../../uthash/src/uthash.h"
+#include "./../../librairies/uthash/src/uthash.h"
 
 struct window_button {
   char * name;

@@ -2,7 +2,7 @@
 #include <stdlib.h> // for free
 
 #include <pthread.h>
-#include "./../../uthash/src/uthash.h"
+#include "./../../librairies/uthash/src/uthash.h"
 
 struct button_to_key {
   char * key; // button name

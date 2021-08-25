@@ -2,20 +2,24 @@
 #include <stdio.h> // print
 #include <time.h> // for calculate ti-/...
 
+#define STRING_SIZE 256
+#define INT_SIZE ((CHAR_BIT * sizeof(int)) / 3 + 2)
+
 #include "./window_button.c"
 
 #include "./../dictionaries/button_to_key.c"
 #include "./../dictionaries/key_to_button.c"
 
-#include "./../keyboard.c"
-#include "./../controller.c"
+#define JSON_SIZE 2048
+#include "./../json/json_generator.c" // use dictionary button_to_key
+#include "./../json/json_parser.c"
+
+#include "./../devices/keyboard.c"
+#include "./../devices/controller.c"
 
 #include <gtk/gtk.h>
 #include <linux/uinput.h>
-//#include <g.h>
 
-#define STRING_SIZE 256
-#define INT_SIZE ((CHAR_BIT * sizeof(int)) / 3 + 2)
 
 ////////////////////////////////////////////////////////////////////////////////
 //// CONSTANTS
@@ -87,6 +91,70 @@ void item_activated(GtkAppChooserButton * _device_selector, gchar* _device, gpoi
   memcpy(keyboard_path, file, STRING_SIZE); // "keyboard_path = file" C is shit
   memcpy(actual_device, _device, STRING_SIZE);
 }
+
+////////////////////////////////////////////////////////////////////////////////
+//// DRAW FUNCTION
+
+void draw_function(GtkDrawingArea * drawing_area, cairo_t * cairo, gpointer data){
+  GdkRGBA color;
+  GtkStyleContext * style_context;
+  guint width, height;
+
+  width = gtk_widget_get_allocated_width(GTK_WIDGET(drawing_area));
+  height = gtk_widget_get_allocated_height(GTK_WIDGET(drawing_area));
+
+  style_context = gtk_widget_get_style_context(GTK_WIDGET(drawing_area));
+
+  cairo_arc (cairo,
+             width / 2.0, height / 2.0,
+             MIN(width, height) / 2.0,
+             0, 2 * G_PI);
+
+  gtk_style_context_get_color(style_context, gtk_style_context_get_state(style_context), &color);
+  gdk_cairo_set_source_rgba(cairo, &color);
+
+  cairo_fill(cairo);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 //// CONTROLLER BUTTONS
@@ -327,6 +395,60 @@ void refresh_button_clicked(GtkButton * _button, gpointer data){
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+//// SAVE BUTTON
+
+void save_button_clicked(GtkButton * _button, gpointer null){
+  printf("%s\n", "SAVE START");
+
+  FILE * file;
+
+  g_mutex_lock(&mutex);
+  char * json = json_generate();
+
+
+  file = fopen("./profiles/default.txt", "w+");
+  fputs(json, file);
+  fclose(file);
+  g_mutex_unlock(&mutex);
+
+  printf("%s\n", "SAVE DONE");
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//// LOAD BUTTON
+
+void reset_window_buttons(){
+
+  struct window_button * _window_button;
+  for (_window_button = window_buttons; _window_button != NULL; _window_button = _window_button->hh.next) {
+    if(button_to_key_exist(_window_button->name)){
+      char _code[INT_SIZE];
+      sprintf(_code, "%d", find_button_to_key(_window_button->name)->code);
+      gtk_button_set_label(_window_button->gtk_button, _code);
+    }
+  }
+}
+
+void load_button_clicked(GtkButton * _button, gpointer null){
+  printf("%s\n", "LOAD START");
+
+  clear_button_clicked(NULL, NULL);
+
+  g_mutex_lock(&mutex);
+  FILE * file = fopen("./profiles/default.txt", "r");
+  char buff[JSON_SIZE];
+  fscanf(file, "%s", buff);
+
+  json_parse(buff);
+  reset_window_buttons();
+
+  fclose(file);
+  g_mutex_unlock(&mutex);
+
+  printf("%s\n", "LOAD DONE");
+}
+
+////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
 void gtk_init(int * argc, char *** argv);
@@ -334,13 +456,17 @@ void gtk_init(int * argc, char *** argv);
 int window(int argc, char ** argv){
 
   GtkBuilder * builder;
-  GtkWidget * window;
+  GtkWidget * main_window;
 
   struct device_selector * selector = (struct device_selector *)malloc(sizeof(struct device_selector));
+
+  GtkDrawingArea * drawing_area;
 
   GtkButton * apply_button;
   GtkButton * clear_button;
   GtkButton * refresh_button;
+  GtkButton * save_button;
+  GtkButton * load_button;
 
   GtkButton * left_stick_up;
   GtkButton * left_stick_left;
@@ -379,12 +505,15 @@ int window(int argc, char ** argv){
   gtk_builder_add_from_file(builder, "./glade/config.glade", NULL);
   gtk_builder_connect_signals(builder, NULL);
 
-  window = GTK_WIDGET(gtk_builder_get_object(builder, "window"));
+  main_window = GTK_WIDGET(gtk_builder_get_object(builder, "main_window"));
 
   selector->gtk_box = GTK_BOX(gtk_builder_get_object(builder, "selector_container"));
   selector->gtk_app_chooser_button = GTK_APP_CHOOSER_BUTTON(gtk_builder_get_object(builder, "selector_control"));
   setup_device_selector(selector->gtk_app_chooser_button);
   g_signal_connect(G_OBJECT(selector->gtk_app_chooser_button), "custom-item-activated", G_CALLBACK(item_activated), NULL);
+
+  drawing_area = GTK_DRAWING_AREA(gtk_builder_get_object(builder, "drawing_area"));
+  g_signal_connect(G_OBJECT(drawing_area), "draw", G_CALLBACK(draw_function), NULL);
 
   apply_button = GTK_BUTTON(gtk_builder_get_object(builder, "apply"));
   g_signal_connect(G_OBJECT(apply_button), "clicked", G_CALLBACK(apply_button_clicked), NULL);
@@ -394,6 +523,13 @@ int window(int argc, char ** argv){
 
   refresh_button = GTK_BUTTON(gtk_builder_get_object(builder, "refresh"));
   g_signal_connect(G_OBJECT(refresh_button), "clicked", G_CALLBACK(refresh_button_clicked), selector);
+
+  save_button = GTK_BUTTON(gtk_builder_get_object(builder, "save"));
+  g_signal_connect(G_OBJECT(save_button), "clicked", G_CALLBACK(save_button_clicked), NULL);
+
+  load_button = GTK_BUTTON(gtk_builder_get_object(builder, "load"));
+  g_signal_connect(G_OBJECT(load_button), "clicked", G_CALLBACK(load_button_clicked), NULL);
+
 
   context = g_main_context_default();
 
@@ -500,7 +636,7 @@ int window(int argc, char ** argv){
 //// START WINDOW
 
   g_object_unref(builder);
-  gtk_widget_show(window);
+  gtk_widget_show(main_window);
   gtk_main();
 
 ////////////////////////////////////////////////////////////////////////////////

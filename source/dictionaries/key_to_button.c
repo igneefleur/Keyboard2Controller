@@ -1,7 +1,7 @@
 #include <stdio.h> // for malloc
 #include <stdlib.h> // for free
 
-#include "./../../uthash/src/uthash.h"
+#include "./../../librairies/uthash/src/uthash.h"
 #include  <linux/uinput.h>
 
 ////////////////////////////////////////////////////////////////////////////////

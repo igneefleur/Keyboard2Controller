@@ -1,0 +1,1 @@
+{"buttons_to_keys":[{"key":"ABS_Y_POSITIVE","value":1,"type":3,"force":512,"code":17},{"key":"ABS_X_NEGATIVE","value":0,"type":3,"force":-512,"code":30},{"key":"ABS_X_POSITIVE","value":0,"type":3,"force":512,"code":32},{"key":"ABS_Y_NEGATIVE","value":1,"type":3,"force":-512,"code":31}]}
